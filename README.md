@@ -28,6 +28,31 @@ These instructions will get you a copy of the project up and running on your loc
 
 Then just access : https://localhost:5001/swagger/index.html to get information regarding the APIs methods.
 
+### Running
+
+To be able to access all methods you will need to [Register](https://localhost:5001/api/v1/users/register) and then [Log in](https://localhost:5001/api/v1/users/login).
+
+In order to do so you will no to make a POST request to [Register](https://localhost:5001/api/v1/users/register) using the BODY example as described bellow:
+
+```
+{
+    "Name":"AnyName",
+    "Email":"AnyEmail",
+    "Password":"AnyPassword"
+}
+```
+
+After that make another POST request but now to [Log in](https://localhost:5001/api/v1/users/login) using the following BODY example:
+
+```
+{
+    "Email":"AnyEmail",
+    "Password":"AnyPassword"
+}
+```
+
+The POST to Login will return a token, this token needs to be used in the Authorization part of the request in order to access the correct user and validate the current section; it will expire after one hour.
+
 ## Built With
 
 - [.Net Core](https://dotnet.microsoft.com/download) → Version: 3.1.412;
