@@ -18,17 +18,25 @@ namespace ExercicioAPI.Controllers
   public class UsersController : ControllerBase
   {
     private readonly AppDbContext database;
-    private HATEOAS.HATEOAS HATEOAS;
+    private HATEOAS.HATEOAS BooksHATEOAS;
+    private HATEOAS.HATEOAS ReadingsHATEOAS;
 
     public UsersController(AppDbContext context)
     {
       this.database = context;
 
-      this.HATEOAS = new HATEOAS.HATEOAS("localhost:5001/api/v1/");
-      this.HATEOAS.AddAction("Books/Get", "BOOK_INFO", "GET");
-      this.HATEOAS.AddAction("Books/Update", "UPDATE_BOOK_INFO", "PATCH");
-      this.HATEOAS.AddAction("Delete", "DELETE_BOOK", "DELETE");
-      this.HATEOAS.AddAction("users/RemoveFavorite", "REMOVE_FAVORITE", "DELETE");
+      this.BooksHATEOAS = new HATEOAS.HATEOAS("localhost:5001/api/v1/");
+      this.ReadingsHATEOAS = new HATEOAS.HATEOAS("localhost:5001/api/v1/");
+
+      this.BooksHATEOAS.AddAction("Books/Get", "BOOK_INFO", "GET");
+      this.BooksHATEOAS.AddAction("Books/Update", "UPDATE_BOOK_INFO", "PATCH");
+      this.BooksHATEOAS.AddAction("Books/Delete", "DELETE_BOOK", "DELETE");
+      this.BooksHATEOAS.AddAction("Books/AddReading", "ADD_READING", "POST");
+      this.BooksHATEOAS.AddAction("Books/GetComments", "GET_COMMENTS", "GET");
+      this.BooksHATEOAS.AddAction("Books/GetRating", "GET_RATING", "GET");
+
+      this.ReadingsHATEOAS.AddAction("Users/UpdateReading", "UPDATE_READING", "PATCH");
+      this.ReadingsHATEOAS.AddAction("Users/RemoveReading", "REMOVE_READING", "DELETE");
     }
     //POST
     [HttpPost("Register")]
@@ -120,45 +128,57 @@ namespace ExercicioAPI.Controllers
 
     }
 
-    [Authorize]
-    [HttpPost("AddFavorite/{id}")]
-    public IActionResult AddFavorite(int Id)
-    {
-      try
-      {
-        var bookId = Id;
-        var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
-
-        var newFavBook = new BookUser()
-        {
-          BookId = bookId,
-          Book = database.Books.First(x => x.Id == bookId),
-          UserId = userId,
-          User = database.Users.First(x => x.Id == userId)
-        };
-        database.BooksUsers.Add(newFavBook);
-        database.SaveChanges();
-
-        Response.StatusCode = 200;
-        return new ObjectResult(new { Message = "The book >>> " + newFavBook.Book.Name + " <<< added to favorites!" });
-      }
-      catch (Exception e)
-      {
-        return BadRequest(e.Message);
-      }
-
-    }
 
     //GET
     [Authorize]
-    [HttpGet("GetFavorites")]
-    public IActionResult GetFavorites()
+    [HttpGet("GetMyReadings")]
+    public IActionResult GetMyReadings()
     {
       try
       {
         var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
         var booksUsers = database.BooksUsers.Where(bu => bu.UserId == userId).ToList();
-        var favBooksContainer = new List<BookContainer>();
+        var readingsContainer = new List<ReadingContainer>();
+
+
+        foreach (var bookUser in booksUsers)
+        {
+          var reading = new Reading()
+          {
+            Book = database.Books.First(b => b.Id == bookUser.BookId),
+            Favorite = bookUser.Favorite,
+            Finished = bookUser.Finished,
+            Commentary = bookUser.Commentary,
+            Rating = bookUser.Rating
+          };
+          var readingContainer = new ReadingContainer()
+          {
+            Reading = reading,
+            Links = ReadingsHATEOAS.GetActions(bookUser.BookId.ToString()),
+          };
+          readingsContainer.Add(readingContainer);
+        }
+        return readingsContainer.Count > 0 ? Ok(readingsContainer) : Ok(new { Message = "You currently don´t have any readings." });
+      }
+      catch (Exception e)
+      {
+        Response.StatusCode = 400;
+        return new ObjectResult(new
+        {
+          Message = e.Message
+        });
+      }
+    }
+
+    [Authorize]
+    [HttpGet("GetMyFavorites")]
+    public IActionResult GetMyFavorites()
+    {
+      try
+      {
+        var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
+        var booksUsers = database.BooksUsers.Where(bu => bu.UserId == userId && bu.Favorite).ToList();
+        var readingsContainer = new List<BookContainer>();
 
 
         foreach (var bookUser in booksUsers)
@@ -167,12 +187,12 @@ namespace ExercicioAPI.Controllers
           var bookContainer = new BookContainer
           {
             Book = book,
-            Links = HATEOAS.GetActions(book.Id.ToString())
+            Links = BooksHATEOAS.GetActions(book.Id.ToString())
           };
 
-          favBooksContainer.Add(bookContainer);
+          readingsContainer.Add(bookContainer);
         }
-        return favBooksContainer.Count > 0 ? Ok(favBooksContainer) : Ok(new { Message = "You dont have any favorite books yet. " });
+        return readingsContainer.Count > 0 ? Ok(readingsContainer) : Ok(new { Message = "You currently don´t have any favorites." });
       }
       catch (Exception e)
       {
@@ -234,6 +254,34 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    [Authorize]
+    [HttpPatch("UpdateReading/{Id}")]
+    public IActionResult UpdateReading([FromBody] ReadingUpdateTransferObj updReading, int Id)
+    {
+      try
+      {
+        var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
+        var user = database.Users.Find(userId);
+        var book = database.Books.Find(Id);
+        var bookUser = database.BooksUsers.First(bu => bu.BookId == book.Id);
+
+        bookUser.Favorite = updReading.Favorite ? updReading.Favorite : bookUser.Favorite;
+        bookUser.Finished = updReading.Finished ? updReading.Finished : bookUser.Finished;
+        bookUser.Rating = updReading.Rating != bookUser.Rating ? updReading.Rating : bookUser.Rating;
+        bookUser.Commentary = updReading.Commentary != bookUser.Commentary ? updReading.Commentary : bookUser.Commentary;
+
+
+        database.SaveChanges();
+
+        return Ok(new { Message = "Reading updated succefully!", data = bookUser });
+      }
+      catch (Exception e)
+      {
+        Response.StatusCode = 400;
+        return new ObjectResult(new { Message = e.Message });
+      }
+    }
+
     //DELETE
     [Authorize]
     [HttpDelete("DeleteMe")]
@@ -255,8 +303,8 @@ namespace ExercicioAPI.Controllers
     }
 
     [Authorize]
-    [HttpDelete("RemoveFavorite/{id}")]
-    public IActionResult RemoveFavorite(int Id)
+    [HttpDelete("RemoveReading/{id}")]
+    public IActionResult RemoveReading(int Id)
     {
       try
       {
@@ -268,7 +316,7 @@ namespace ExercicioAPI.Controllers
         user.BooksUsers.Remove(bookUser);
         database.SaveChanges();
 
-        return Ok(new { Message = "The book >>> " + book.Name + " <<< was removed from favorites" });
+        return Ok(new { Message = "The book >>> " + book.Name + " <<< was removed from your readings" });
       }
       catch (Exception e)
       {

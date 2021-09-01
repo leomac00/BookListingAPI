@@ -13,17 +13,18 @@ namespace ExercicioAPI.Controllers
   public class BooksController : ControllerBase
   {
     private readonly AppDbContext database;
-    private HATEOAS.HATEOAS HATEOAS;
+    private HATEOAS.HATEOAS BooksHATEOAS;
     public BooksController(AppDbContext db)
     {
       this.database = db;
 
-      this.HATEOAS = new HATEOAS.HATEOAS("localhost:5001/api/v1/");
-      this.HATEOAS.AddAction("Books/Get", "BOOK_INFO", "GET");
-      this.HATEOAS.AddAction("Books/Update", "UPDATE_BOOK_INFO", "PATCH");
-      this.HATEOAS.AddAction("Delete", "DELETE_BOOK", "DELETE");
-      this.HATEOAS.AddAction("users/AddFavorite", "ADD_AS_FAVORITE", "POST");
-      this.HATEOAS.AddAction("users/RemoveFavorite", "REMOVE_FAVORITE", "DELETE");
+      this.BooksHATEOAS = new HATEOAS.HATEOAS("localhost:5001/api/v1/");
+      this.BooksHATEOAS.AddAction("Books/Get", "BOOK_INFO", "GET");
+      this.BooksHATEOAS.AddAction("Books/Update", "UPDATE_BOOK_INFO", "PATCH");
+      this.BooksHATEOAS.AddAction("Books/Delete", "DELETE_BOOK", "DELETE");
+      this.BooksHATEOAS.AddAction("Books/AddReading", "ADD_READING", "POST");
+      this.BooksHATEOAS.AddAction("Books/GetComments", "GET_COMMENTS", "GET");
+      this.BooksHATEOAS.AddAction("Books/GetRating", "GET_RATING", "GET");
     }
 
 
@@ -42,7 +43,7 @@ namespace ExercicioAPI.Controllers
           Status = true
         };
 
-        database.Add(book);
+        database.Books.Add(book);
         database.SaveChanges();
 
         Response.StatusCode = 201;
@@ -53,6 +54,47 @@ namespace ExercicioAPI.Controllers
         Response.StatusCode = 400;
         return new ObjectResult(new { Message = "We weren´t able to add the book to the database." });
       }
+    }
+
+    [Authorize]
+    [HttpPost("AddReading/{id}")]
+    public IActionResult AddReading(int Id)
+    {
+      try
+      {
+        var bookId = Id;
+        var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
+
+        if (database.BooksUsers.ToList().Any(bu => bu.BookId == bookId))
+        {
+          return BadRequest(new { Message = "Reading already existis in your account, try updating it or removing and creating a new one." });
+        }
+        else
+        {
+          var newReading = new BookUser()
+          {
+            BookId = bookId,
+            Book = database.Books.First(x => x.Id == bookId),
+            UserId = userId,
+            User = database.Users.First(x => x.Id == userId),
+            Favorite = false,
+            Commentary = "",
+            Finished = false,
+            Rating = 5,
+          };
+          database.BooksUsers.Add(newReading);
+          database.SaveChanges();
+
+          Response.StatusCode = 200;
+          return new ObjectResult(new { Message = "The book >>> " + newReading.Book.Name + " <<< was added to your readings!" });
+        }
+
+      }
+      catch (Exception e)
+      {
+        return BadRequest(e.Message);
+      }
+
     }
 
     //GET
@@ -68,7 +110,7 @@ namespace ExercicioAPI.Controllers
           BookContainer bookContainer = new BookContainer()
           {
             Book = book,
-            Links = HATEOAS.GetActions(book.Id.ToString())
+            Links = BooksHATEOAS.GetActions(book.Id.ToString())
           };
           bookContainersCollection.Add(bookContainer);
         }
@@ -91,7 +133,7 @@ namespace ExercicioAPI.Controllers
         var bookContainer = new BookContainer()
         {
           Book = book,
-          Links = HATEOAS.GetActions(book.Id.ToString())
+          Links = BooksHATEOAS.GetActions(book.Id.ToString())
         };
         return Ok(bookContainer);
       }
@@ -105,16 +147,77 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    [HttpGet("GetComments/{id}")]
+    public IActionResult GetComments(int Id)
+    {
+      try
+      {
+        var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
+        var booksUsers = database.BooksUsers.Where(bu => bu.BookId == Id).ToList();
+        var comments = new List<CommentContainer>();
+
+
+        foreach (var bookUser in booksUsers)
+        {
+          var comment = new CommentContainer()
+          {
+            UserName = database.Users.Find(bookUser.UserId).Name,
+            Comment = bookUser.Commentary,
+          };
+          comments.Add(comment);
+        }
+        return !comments.All(c => c.Comment.Equals("")) ? Ok(comments) : Ok(new { Message = "This book currently have no comments." });
+      }
+      catch (Exception e)
+      {
+        Response.StatusCode = 400;
+        return new ObjectResult(new { Message = e.Message });
+      }
+    }
+
+    [HttpGet("GetRating/{id}")]
+    public IActionResult GetRating(int Id)
+    {
+      try
+      {
+        var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
+        var booksUsers = database.BooksUsers.Where(bu => bu.BookId == Id).ToList();
+        var book = database.Books.Find(Id);
+
+        if (booksUsers.Count == 0)
+        {
+          return Ok(new { Message = "The book >>> " + book.Name + " <<< has no ratings. yet" }); ;
+        }
+        else
+        {
+
+        }
+
+        var ratings = new List<double>();
+        foreach (var bookUser in booksUsers)
+        {
+
+          ratings.Add(bookUser.Rating);
+        }
+        double avgRating = ratings.Average();
+        return Ok(new { Message = "The book >>> " + book.Name + " <<< has currently a rating of " + avgRating }); ;
+      }
+      catch (Exception e)
+      {
+        Response.StatusCode = 400;
+        return new ObjectResult(new { Message = e.Message });
+      }
+    }
 
     //PATCH
     [Authorize]
     [HttpPatch("Update/{id}")]
-    public IActionResult Patch([FromBody] BookDTO updBook, int id)
+    public IActionResult Update([FromBody] BookDTO updBook, int Id)
     {
 
       try
       {
-        var book = database.Books.Find(id);
+        var book = database.Books.Where(b => b.Status).First(b => b.Id == Id);
         book.Name = updBook.Name;
         book.Author = updBook.Author;
         book.Pages = updBook.Pages;
@@ -138,17 +241,17 @@ namespace ExercicioAPI.Controllers
     {
       try
       {
-        var book = database.Books.Find(Id);
+        var book = database.Books.Where(b => b.Status).First(b => b.Id == Id);
 
         book.Status = false;
         database.SaveChanges();
 
-        return Ok("Book removed from DataBase!");
+        return Ok(new { Message = "The book >>> " + book.Name + " <<< has been deleted." });
       }
       catch
       {
         Response.StatusCode = 404;
-        return new ObjectResult("Id wasn´t found.");
+        return new ObjectResult(new { Message = "Id wasn´t found." });
       }
     }
   }

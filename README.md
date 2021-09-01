@@ -1,4 +1,4 @@
-﻿# Exercicio API - Favorite Books API
+﻿# Exercicio API - Book listing API
 
 An API that allows users to control their favorite books.
 

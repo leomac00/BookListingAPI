@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using ExercicioAPI.HATEOAS;
 
@@ -35,4 +36,5 @@ namespace ExercicioAPI.Models
     public Book Book { get; set; }
     public Link[] Links { get; set; }
   }
+
 }

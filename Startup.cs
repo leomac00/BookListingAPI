@@ -40,7 +40,7 @@ namespace ExercicioAPI
       });
       services.AddSwaggerGen(conf =>
       {
-        conf.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Favorite books API", Version = "v1" });
+        conf.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Book listing API", Version = "v1" });
       });
       services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
       {
