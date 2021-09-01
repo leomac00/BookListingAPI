@@ -51,7 +51,7 @@ After that make another POST request but now to [Log in](https://localhost:5001/
 }
 ```
 
-The POST to Login will return a token, this token needs to be used in the Authorization part of the request in order to access the correct user and validate the current section; it will expire after one hour.
+The POST to Login will return a token, this token needs to be used in the Authorization part of the request in order to access the correct user and validate the current session; it will expire after one hour.
 
 ## Built With
 
