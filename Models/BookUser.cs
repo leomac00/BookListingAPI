@@ -4,7 +4,7 @@ using ExercicioAPI.HATEOAS;
 namespace ExercicioAPI.Models
 {
   public class BookUser
-  {
+  { //Relationship between Book and User entities
     public int Id { get; set; }
     public int BookId { get; set; }
     public Book Book { get; set; }

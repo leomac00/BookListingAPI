@@ -29,6 +29,8 @@ namespace ExercicioAPI.Controllers
 
 
     //POST
+    ///<summary>Insert new book to Database based on BODY information.</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpPost("AddBook")]
     public IActionResult AddBook(BookDTO bookDTO)
@@ -56,6 +58,8 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Add specified book based on ID given to current user´s ReadingList</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpPost("AddReading/{id}")]
     public IActionResult AddReading(int Id)
@@ -65,7 +69,7 @@ namespace ExercicioAPI.Controllers
         var bookId = Id;
         var userId = Int32.Parse(HttpContext.User.Claims.First(c => c.Type.ToString().Equals("id", StringComparison.InvariantCultureIgnoreCase)).Value);
 
-        if (database.BooksUsers.ToList().Any(bu => bu.BookId == bookId))
+        if (database.BooksUsers.Where(bu => bu.BookId == bookId && bu.UserId == userId).ToList().Count > 0)
         {
           return BadRequest(new { Message = "Reading already existis in your account, try updating it or removing and creating a new one." });
         }
@@ -98,6 +102,7 @@ namespace ExercicioAPI.Controllers
     }
 
     //GET
+    ///<summary>Get all active books from Database.</summary>
     [HttpGet("GetAll")]
     public IActionResult GetAll()
     {
@@ -124,6 +129,7 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Get specified book from Database based on the ID informed.</summary>
     [HttpGet("Get/{Id}")]
     public IActionResult Get(int Id)
     {
@@ -147,6 +153,7 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Get all comments from a specified book based on its ID.</summary>
     [HttpGet("GetComments/{id}")]
     public IActionResult GetComments(int Id)
     {
@@ -175,6 +182,7 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Get average user rating from a specified book based on its ID.</summary>
     [HttpGet("GetRating/{id}")]
     public IActionResult GetRating(int Id)
     {
@@ -210,6 +218,8 @@ namespace ExercicioAPI.Controllers
     }
 
     //PATCH
+    ///<summary>Update book´s info based on BODY information from a specified book based on its ID.</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpPatch("Update/{id}")]
     public IActionResult Update([FromBody] BookDTO updBook, int Id)
@@ -233,8 +243,9 @@ namespace ExercicioAPI.Controllers
       }
     }
 
-
     //DELETE
+    ///<summary>Boolean deletion of specified book based on its ID.</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpDelete("Delete/{Id}")]
     public IActionResult Delete(int Id)

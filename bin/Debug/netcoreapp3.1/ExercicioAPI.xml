@@ -1,0 +1,98 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>ExercicioAPI</name>
+    </assembly>
+    <members>
+        <member name="M:ExercicioAPI.Controllers.BooksController.AddBook(ExercicioAPI.Models.BookDTO)">
+            <summary>Insert new book to Database based on BODY information.</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.AddReading(System.Int32)">
+            <summary>Add specified book based on ID given to current user´s ReadingList</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.GetAll">
+            <summary>Get all active books from Database.</summary>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.Get(System.Int32)">
+            <summary>Get specified book from Database based on the ID informed.</summary>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.GetComments(System.Int32)">
+            <summary>Get all comments from a specified book based on its ID.</summary>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.GetRating(System.Int32)">
+            <summary>Get average user rating from a specified book based on its ID.</summary>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.Update(ExercicioAPI.Models.BookDTO,System.Int32)">
+            <summary>Update book´s info based on BODY information from a specified book based on its ID.</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.BooksController.Delete(System.Int32)">
+            <summary>Boolean deletion of specified book based on its ID.</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.Register(ExercicioAPI.Models.UserDTO)">
+            <summary>Register a new user based on BODY information.</summary>
+             <remarks>
+             Sample BODY
+             
+                 POST
+                 {
+                    "Name": "AnyStringHere",
+                    "Email": "AnyStringHere"
+                    "Password": "AnyStringHere"
+                 }
+             </remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.Login(ExercicioAPI.Models.UserDTO)">
+            <summary>Logs a user in based on BODY information and return a token that is required using in the Authorization section for the majority of the requests.</summary>
+             <remarks>
+             Sample BODY
+             
+                 POST
+                 {
+                    "Email": "AnyStringHere"
+                    "Password": "AnyStringHere"
+                 }
+             Sample of RESPONSE
+             
+                 {
+                   "message": "Your token is valid for the next [ 1 ] Hour(s)",
+                   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIiLCJleHAiOjE2MzA2MDM1NzUsImlzcyI6IkJvb2tBUEkiLCJhdWQiOiJjb21tb25fdXNlciJ9.9VutNrpPvKGxy1x35GyNYjwFxNGqHhexLiVfMJ0wQkg"
+                }
+             </remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.GetMyReadings">
+            <summary>Get all current user´s readings information's.</summary>
+             <remarks>
+             !!! This method requires the use of a token to allow the access of a valid user !!!
+             Return information regarding Reading statuses and links to actions regarding the Reading.
+             </remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.GetMyFavorites">
+            <summary>Get all current user´s information about his/hers favorited books.</summary>
+             <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.GetUsers">
+            <summary>Get a list of registered users.</summary>
+             <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.UpdateMe(ExercicioAPI.Models.UserDTO)">
+            <summary>Allows for current user info updating based on BODY information.</summary>
+             <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.UpdateReading(ExercicioAPI.Models.ReadingUpdateTransferObj,System.Int32)">
+            <summary>Allows for Reading updates, such as commentaries, ratings, favoriting and such based on BODY information and its ID.</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.DeleteMe">
+            <summary>Boolean deletion of current user.</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+        <member name="M:ExercicioAPI.Controllers.UsersController.RemoveReading(System.Int32)">
+            <summary>Remove given reading from Database based on its ID.</summary>
+            <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
+        </member>
+    </members>
+</doc>

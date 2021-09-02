@@ -39,6 +39,17 @@ namespace ExercicioAPI.Controllers
       this.ReadingsHATEOAS.AddAction("Users/RemoveReading", "REMOVE_READING", "DELETE");
     }
     //POST
+    ///<summary>Register a new user based on BODY information.</summary>
+    /// <remarks>
+    /// Sample BODY
+    /// 
+    ///     POST
+    ///     {
+    ///        "Name": "AnyStringHere",
+    ///        "Email": "AnyStringHere"
+    ///        "Password": "AnyStringHere"
+    ///     }
+    /// </remarks>
     [HttpPost("Register")]
     public IActionResult Register([FromBody] UserDTO userDTO)
     {
@@ -73,6 +84,22 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Logs a user in based on BODY information and return a token that is required using in the Authorization section for the majority of the requests.</summary>
+    /// <remarks>
+    /// Sample BODY
+    /// 
+    ///     POST
+    ///     {
+    ///        "Email": "AnyStringHere"
+    ///        "Password": "AnyStringHere"
+    ///     }
+    /// Sample of RESPONSE
+    /// 
+    ///     {
+    ///       "message": "Your token is valid for the next [ 1 ] Hour(s)",
+    ///       "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjIiLCJleHAiOjE2MzA2MDM1NzUsImlzcyI6IkJvb2tBUEkiLCJhdWQiOiJjb21tb25fdXNlciJ9.9VutNrpPvKGxy1x35GyNYjwFxNGqHhexLiVfMJ0wQkg"
+    ///    }
+    /// </remarks>
     [HttpPost("Login")]
     public IActionResult Login([FromBody] UserDTO userDTO)
     {
@@ -130,6 +157,11 @@ namespace ExercicioAPI.Controllers
 
 
     //GET
+    ///<summary>Get all current user´s readings information's.</summary>
+    /// <remarks>
+    /// !!! This method requires the use of a token to allow the access of a valid user !!!
+    /// Return information regarding Reading statuses and links to actions regarding the Reading.
+    /// </remarks>
     [Authorize]
     [HttpGet("GetMyReadings")]
     public IActionResult GetMyReadings()
@@ -170,6 +202,8 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Get all current user´s information about his/hers favorited books.</summary>
+    /// <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpGet("GetMyFavorites")]
     public IActionResult GetMyFavorites()
@@ -201,6 +235,8 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Get a list of registered users.</summary>
+    /// <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpGet("GetUsers")]
     public IActionResult GetUsers()
@@ -230,6 +266,8 @@ namespace ExercicioAPI.Controllers
     }
 
     //PATCH
+    ///<summary>Allows for current user info updating based on BODY information.</summary>
+    /// <remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpPatch("UpdateMe")]
     public IActionResult UpdateMe([FromBody] UserDTO userDTO)
@@ -254,6 +292,8 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Allows for Reading updates, such as commentaries, ratings, favoriting and such based on BODY information and its ID.</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpPatch("UpdateReading/{Id}")]
     public IActionResult UpdateReading([FromBody] ReadingUpdateTransferObj updReading, int Id)
@@ -283,6 +323,8 @@ namespace ExercicioAPI.Controllers
     }
 
     //DELETE
+    ///<summary>Boolean deletion of current user.</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpDelete("DeleteMe")]
     public IActionResult DeleteMe()
@@ -302,6 +344,8 @@ namespace ExercicioAPI.Controllers
       }
     }
 
+    ///<summary>Remove given reading from Database based on its ID.</summary>
+    ///<remarks>!!! This method requires the use of a token to allow the access of a valid user !!!</remarks>
     [Authorize]
     [HttpDelete("RemoveReading/{id}")]
     public IActionResult RemoveReading(int Id)
