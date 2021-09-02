@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -41,6 +42,8 @@ namespace ExercicioAPI
       services.AddSwaggerGen(conf =>
       {
         conf.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo { Title = "Book listing API", Version = "v1" });
+        var filePath = Path.Combine(System.AppContext.BaseDirectory, "ExercicioAPI.xml");
+        conf.IncludeXmlComments(filePath);
       });
       services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
       {
